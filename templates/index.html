@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форум</title>
+    <style>
+        /* Несколько стилей для улучшения внешнего вида */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .message {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Форум</h1>
+
+    <div id="messages"></div>
+
+    <h2>Новое сообщение</h2>
+    <input type="text" id="from" placeholder="От кого" required>
+    <input type="text" id="to" placeholder="Кому (пусто при игнорировании)">
+    <textarea id="text" placeholder="Текст сообщения" required></textarea>
+    <button onclick="sendMessage()">Отправить</button>
+
+    <script>
+        // Функция для загрузки сообщений с сервера
+        function loadMessages() {
+            fetch('/api/messages')
+                .then(response => response.json())
+                .then(messages => {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '';
+                    messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('message');
+                        messageDiv.innerHTML = `<strong>${msg.from}</strong> <em>к ${msg.to}</em>: ${msg.text}`;
+                        messagesDiv.appendChild(messageDiv);
+                    });
+                });
+        }
+
+        // Функция для отправки нового сообщения на сервер
+        function sendMessage() {
+            const from = document.getElementById('from').value;
+            const to = document.getElementById('to').value;
+            const text = document.getElementById('text').value;
+
+            const message = { from, to, text };
+
+            fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message),
+            })
+            .then(response => {
+                if (response.ok) {
+                    loadMessages();
+                    document.getElementById('from').value = '';
+                    document.getElementById('to').value = '';
+                    document.getElementById('text').value = '';
+                }
+            });
+        }
+
+        // Загрузка сообщений при загрузке страницы
+        window.onload = loadMessages;
+    </script>
+</body>
+</html>
